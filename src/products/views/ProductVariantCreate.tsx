@@ -88,10 +88,10 @@ export const ProductVariant: React.FC<ProductVariantCreateProps> = ({
       variables: {
         input: {
           attributes: formData.attributes
-            .filter(attribute => attribute.value !== "")
+            .filter(attribute => attribute.value && attribute.value[0] !== "")
             .map(attribute => ({
               id: attribute.id,
-              values: [attribute.value]
+              values: attribute.value
             })),
           costPrice: decimal(formData.costPrice),
           price: decimal(formData.price),

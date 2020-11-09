@@ -1,4 +1,8 @@
 import { OutputData } from "@editorjs/editorjs";
+import {
+  AttributeInput,
+  AttributeInputData
+} from "@saleor/components/Attributes";
 import { MetadataFormData } from "@saleor/components/Metadata";
 import { MultiAutocompleteChoiceType } from "@saleor/components/MultiAutocompleteSelectField";
 import { RichTextEditorChange } from "@saleor/components/RichTextEditor";
@@ -23,10 +27,6 @@ import useRichText from "@saleor/utils/richText/useRichText";
 import React from "react";
 
 import { SearchProductTypes_search_edges_node } from "../../../searches/types/SearchProductTypes";
-import {
-  ProductAttributeInput,
-  ProductAttributeInputData
-} from "../ProductAttributes";
 import { ProductStockInput } from "../ProductStocks";
 
 export interface ProductCreateFormData extends MetadataFormData {
@@ -54,7 +54,7 @@ export interface ProductCreateFormData extends MetadataFormData {
   weight: string;
 }
 export interface ProductCreateData extends ProductCreateFormData {
-  attributes: ProductAttributeInput[];
+  attributes: AttributeInput[];
   stocks: ProductStockInput[];
 }
 
@@ -148,7 +148,7 @@ function useProductCreateForm(
     ...initial,
     ...defaultInitialFormData
   });
-  const attributes = useFormset<ProductAttributeInputData>(
+  const attributes = useFormset<AttributeInputData>(
     initial?.productType
       ? getAttributeInputFromProductType(initialProductType)
       : []

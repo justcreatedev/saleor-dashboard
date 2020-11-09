@@ -1,4 +1,5 @@
 import AppHeader from "@saleor/components/AppHeader";
+import Attributes, { AttributeInput } from "@saleor/components/Attributes";
 import CardSpacer from "@saleor/components/CardSpacer";
 import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
 import Container from "@saleor/components/Container";
@@ -10,7 +11,6 @@ import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import { ProductErrorWithAttributesFragment } from "@saleor/fragments/types/ProductErrorWithAttributesFragment";
 import { ProductVariant } from "@saleor/fragments/types/ProductVariant";
 import { WarehouseFragment } from "@saleor/fragments/types/WarehouseFragment";
-import { FormsetData } from "@saleor/hooks/useFormset";
 import { VariantUpdate_productVariantUpdate_errors } from "@saleor/products/types/VariantUpdate";
 import { ReorderAction } from "@saleor/types";
 import React from "react";
@@ -18,9 +18,6 @@ import React from "react";
 import { maybe } from "../../../misc";
 import ProductShipping from "../ProductShipping/ProductShipping";
 import ProductStocks, { ProductStockInput } from "../ProductStocks";
-import ProductVariantAttributes, {
-  VariantAttributeInputData
-} from "../ProductVariantAttributes";
 import ProductVariantImages from "../ProductVariantImages";
 import ProductVariantImageSelectDialog from "../ProductVariantImageSelectDialog";
 import ProductVariantNavigation from "../ProductVariantNavigation";
@@ -38,7 +35,7 @@ export interface ProductVariantPageFormData extends MetadataFormData {
 
 export interface ProductVariantPageSubmitData
   extends ProductVariantPageFormData {
-  attributes: FormsetData<VariantAttributeInputData, string>;
+  attributes: AttributeInput[];
   addStocks: ProductStockInput[];
   updateStocks: ProductStockInput[];
   removeStocks: string[];
@@ -137,11 +134,12 @@ const ProductVariantPage: React.FC<ProductVariantPageProps> = ({
                   />
                 </div>
                 <div>
-                  <ProductVariantAttributes
+                  <Attributes
                     attributes={data.attributes}
                     disabled={loading}
                     errors={errors}
                     onChange={handlers.selectAttribute}
+                    onMultiChange={handlers.selectAttributeMultiple}
                   />
                   <CardSpacer />
                   <ProductVariantImages

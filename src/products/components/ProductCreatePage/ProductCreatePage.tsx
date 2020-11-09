@@ -1,4 +1,5 @@
 import AppHeader from "@saleor/components/AppHeader";
+import Attributes from "@saleor/components/Attributes";
 import AvailabilityCard from "@saleor/components/AvailabilityCard";
 import CardSpacer from "@saleor/components/CardSpacer";
 import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
@@ -23,7 +24,6 @@ import React from "react";
 import { useIntl } from "react-intl";
 
 import { FetchMoreProps } from "../../../types";
-import ProductAttributes from "../ProductAttributes";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductOrganization from "../ProductOrganization";
 import ProductPricing from "../ProductPricing";
@@ -142,7 +142,7 @@ export const ProductCreatePage: React.FC<ProductCreatePageProps> = ({
                 />
                 <CardSpacer />
                 {data.attributes.length > 0 && (
-                  <ProductAttributes
+                  <Attributes
                     attributes={data.attributes}
                     disabled={disabled}
                     errors={errors}

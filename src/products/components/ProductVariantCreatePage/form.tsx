@@ -1,17 +1,18 @@
+import { AttributeInput } from "@saleor/components/Attributes";
 import { MetadataFormData } from "@saleor/components/Metadata";
 import useForm, { FormChange } from "@saleor/hooks/useForm";
-import useFormset, {
-  FormsetChange,
-  FormsetData
-} from "@saleor/hooks/useFormset";
+import useFormset, { FormsetChange } from "@saleor/hooks/useFormset";
 import { ProductVariantCreateData_product } from "@saleor/products/types/ProductVariantCreateData";
 import { getVariantAttributeInputFromProduct } from "@saleor/products/utils/data";
+import {
+  createAttributeChangeHandler,
+  createAttributeMultiChangeHandler
+} from "@saleor/products/utils/handlers";
 import { SearchWarehouses_search_edges_node } from "@saleor/searches/types/SearchWarehouses";
 import useMetadataChangeTrigger from "@saleor/utils/metadata/useMetadataChangeTrigger";
 import React from "react";
 
 import { ProductStockInput } from "../ProductStocks";
-import { VariantAttributeInputData } from "../ProductVariantAttributes";
 
 export interface ProductVariantCreateFormData extends MetadataFormData {
   costPrice: string;
@@ -21,7 +22,7 @@ export interface ProductVariantCreateFormData extends MetadataFormData {
   weight: string;
 }
 export interface ProductVariantCreateData extends ProductVariantCreateFormData {
-  attributes: FormsetData<VariantAttributeInputData, string>;
+  attributes: AttributeInput[];
   stocks: ProductStockInput[];
 }
 
@@ -33,7 +34,10 @@ export interface UseProductVariantCreateFormResult {
   change: FormChange;
   data: ProductVariantCreateData;
   // TODO: type FormsetChange
-  handlers: Record<"changeStock" | "selectAttribute", FormsetChange> &
+  handlers: Record<
+    "changeStock" | "selectAttribute" | "selectAttributeMultiple",
+    FormsetChange
+  > &
     Record<"addStock" | "deleteStock", (id: string) => void> & {
       changeMetadata: FormChange;
     };
@@ -80,10 +84,15 @@ function useProductVariantCreateForm(
     triggerChange();
   };
   const changeMetadata = makeMetadataChangeHandler(handleChange);
-  const handleAttributeChange: FormsetChange = (id, value) => {
-    attributes.change(id, value);
-    triggerChange();
-  };
+  const handleAttributeChange = createAttributeChangeHandler(
+    attributes.change,
+    triggerChange
+  );
+  const handleAttributeMultiChange = createAttributeMultiChangeHandler(
+    attributes.change,
+    attributes.data,
+    triggerChange
+  );
   const handleStockAdd = (id: string) => {
     triggerChange();
     stocks.add({
@@ -118,7 +127,8 @@ function useProductVariantCreateForm(
       changeMetadata,
       changeStock: handleStockChange,
       deleteStock: handleStockDelete,
-      selectAttribute: handleAttributeChange
+      selectAttribute: handleAttributeChange,
+      selectAttributeMultiple: handleAttributeMultiChange
     },
     hasChanged: changed,
     submit

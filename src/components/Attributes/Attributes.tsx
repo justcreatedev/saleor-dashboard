@@ -1,9 +1,11 @@
+import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import IconButton from "@material-ui/core/IconButton";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import Typography from "@material-ui/core/Typography";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
+import DeleteIcon from "@material-ui/icons/Delete";
 import CardTitle from "@saleor/components/CardTitle";
 import Grid from "@saleor/components/Grid";
 import Hr from "@saleor/components/Hr";
@@ -13,28 +15,30 @@ import MultiAutocompleteSelectField, {
 import SingleAutocompleteSelectField, {
   SingleAutocompleteChoiceType
 } from "@saleor/components/SingleAutocompleteSelectField";
-import { PageDetailsFragment_pageType_attributes_values } from "@saleor/fragments/types/PageDetailsFragment";
+import { AttributeValueFragment } from "@saleor/fragments/types/AttributeValueFragment";
 import { PageErrorWithAttributesFragment } from "@saleor/fragments/types/PageErrorWithAttributesFragment";
+import { ProductErrorWithAttributesFragment } from "@saleor/fragments/types/ProductErrorWithAttributesFragment";
 import { FormsetAtomicData, FormsetChange } from "@saleor/hooks/useFormset";
+import { commonMessages } from "@saleor/intl";
 import { AttributeInputTypeEnum } from "@saleor/types/globalTypes";
+import { getProductErrorMessage } from "@saleor/utils/errors";
 import getPageErrorMessage from "@saleor/utils/errors/page";
 import classNames from "classnames";
 import React from "react";
-import { FormattedMessage, useIntl } from "react-intl";
+import { FormattedMessage, IntlShape, useIntl } from "react-intl";
 
-export interface PageAttributeInputData {
+export interface AttributeInputData {
   inputType: AttributeInputTypeEnum;
   isRequired: boolean;
-  values: PageDetailsFragment_pageType_attributes_values[];
+  values: AttributeValueFragment[]; // | FileList;
 }
-export type PageAttributeInput = FormsetAtomicData<
-  PageAttributeInputData,
-  string[]
->;
-export interface PageAttributesProps {
-  attributes: PageAttributeInput[];
+export type AttributeInput = FormsetAtomicData<AttributeInputData, string[]>;
+export interface AttributesProps {
+  attributes: AttributeInput[];
   disabled: boolean;
-  errors: PageErrorWithAttributesFragment[];
+  errors: Array<
+    ProductErrorWithAttributesFragment | PageErrorWithAttributesFragment
+  >;
   onChange: FormsetChange;
   onMultiChange: FormsetChange;
 }
@@ -78,15 +82,26 @@ const useStyles = makeStyles(
       display: "flex",
       flex: 1
     },
+    fileField: {
+      display: "none"
+    },
     rotate: {
       transform: "rotate(180deg)"
+    },
+    uploadFileButton: {
+      float: "right"
+    },
+    uploadFileContent: {
+      color: theme.palette.primary.main,
+      float: "right",
+      fontSize: "1rem"
     }
   }),
-  { name: "PageAttributes" }
+  { name: "Attributes" }
 );
 
 function getMultiChoices(
-  values: PageDetailsFragment_pageType_attributes_values[]
+  values: AttributeValueFragment[]
 ): MultiAutocompleteChoiceType[] {
   return values.map(value => ({
     label: value.name,
@@ -95,7 +110,7 @@ function getMultiChoices(
 }
 
 function getMultiDisplayValue(
-  attribute: PageAttributeInput
+  attribute: AttributeInput
 ): MultiAutocompleteChoiceType[] {
   return attribute.value.map(attributeValue => {
     const definedAttributeValue = attribute.data.values.find(
@@ -116,7 +131,7 @@ function getMultiDisplayValue(
 }
 
 function getSingleChoices(
-  values: PageDetailsFragment_pageType_attributes_values[]
+  values: AttributeValueFragment[]
 ): SingleAutocompleteChoiceType[] {
   return values.map(value => ({
     label: value.name,
@@ -124,7 +139,19 @@ function getSingleChoices(
   }));
 }
 
-const PageAttributes: React.FC<PageAttributesProps> = ({
+function getErrorMessage(
+  err: ProductErrorWithAttributesFragment | PageErrorWithAttributesFragment,
+  intl: IntlShape
+): string {
+  switch (err?.__typename) {
+    case "ProductError":
+      return getProductErrorMessage(err, intl);
+    case "PageError":
+      return getPageErrorMessage(err, intl);
+  }
+}
+
+const Attributes: React.FC<AttributesProps> = ({
   attributes,
   disabled,
   errors,
@@ -135,13 +162,14 @@ const PageAttributes: React.FC<PageAttributesProps> = ({
   const classes = useStyles({});
   const [expanded, setExpansionStatus] = React.useState(true);
   const toggleExpansion = () => setExpansionStatus(!expanded);
+  const upload = React.useRef(null);
 
   return (
     <Card className={classes.card}>
       <CardTitle
         title={intl.formatMessage({
           defaultMessage: "Attributes",
-          description: "page attributes, section header"
+          description: "attributes, section header"
         })}
       />
       <CardContent className={classes.cardContent}>
@@ -150,7 +178,7 @@ const PageAttributes: React.FC<PageAttributesProps> = ({
             <Typography className={classes.expansionBarLabel} variant="caption">
               <FormattedMessage
                 defaultMessage="{number} Attributes"
-                description="number of page attributes"
+                description="number of attributes"
                 values={{
                   number: attributes.length
                 }}
@@ -160,7 +188,7 @@ const PageAttributes: React.FC<PageAttributesProps> = ({
           <IconButton
             className={classes.expansionBarButton}
             onClick={toggleExpansion}
-            data-test="page-attributes-expand"
+            data-test="attributes-expand"
           >
             <ArrowDropDownIcon
               className={classNames(classes.expansionBarButtonIcon, {
@@ -183,13 +211,54 @@ const PageAttributes: React.FC<PageAttributesProps> = ({
                   <Grid className={classes.attributeSection} variant="uniform">
                     <div
                       className={classes.attributeSectionLabel}
-                      data-test="page-attribute-label"
+                      data-test="attribute-label"
                     >
                       <Typography>{attribute.label}</Typography>
                     </div>
-                    <div data-test="page-attribute-value">
+                    <div data-test="attribute-value">
                       {attribute.data.inputType ===
-                      AttributeInputTypeEnum.DROPDOWN ? (
+                      AttributeInputTypeEnum.FILE ? (
+                        <>
+                          {upload.current?.files.length > 0 ? (
+                            <div className={classes.uploadFileContent}>
+                              {upload.current?.files[0].name}
+                              <IconButton
+                                color="primary"
+                                onClick={() =>
+                                  onChange(attribute.id, undefined)
+                                }
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </div>
+                          ) : (
+                            <>
+                              <Button
+                                onClick={() => upload.current.click()}
+                                disabled={disabled}
+                                variant="outlined"
+                                color="primary"
+                                className={classes.uploadFileButton}
+                                data-test="button-upload-file"
+                              >
+                                {intl.formatMessage(commonMessages.chooseFile)}
+                              </Button>
+                            </>
+                          )}
+                          <input
+                            className={classes.fileField}
+                            id="fileUpload"
+                            onChange={event =>
+                              onChange(attribute.id, event.target.files)
+                            }
+                            type="file"
+                            name={`attribute:${attribute.label}`}
+                            // value={attribute.value} // TODO: check if it works
+                            ref={upload}
+                          />
+                        </>
+                      ) : attribute.data.inputType ===
+                        AttributeInputTypeEnum.DROPDOWN ? (
                         <SingleAutocompleteSelectField
                           choices={getSingleChoices(attribute.data.values)}
                           disabled={disabled}
@@ -202,7 +271,7 @@ const PageAttributes: React.FC<PageAttributesProps> = ({
                           }
                           emptyOption={!attribute.data.isRequired}
                           error={!!error}
-                          helperText={getPageErrorMessage(error, intl)}
+                          helperText={getErrorMessage(error, intl)}
                           name={`attribute:${attribute.label}`}
                           label={intl.formatMessage({
                             defaultMessage: "Value",
@@ -219,7 +288,7 @@ const PageAttributes: React.FC<PageAttributesProps> = ({
                           choices={getMultiChoices(attribute.data.values)}
                           displayValues={getMultiDisplayValue(attribute)}
                           error={!!error}
-                          helperText={getPageErrorMessage(error, intl)}
+                          helperText={getErrorMessage(error, intl)}
                           label={intl.formatMessage({
                             defaultMessage: "Values",
                             description: "attribute values"
@@ -243,5 +312,5 @@ const PageAttributes: React.FC<PageAttributesProps> = ({
     </Card>
   );
 };
-PageAttributes.displayName = "PageAttributes";
-export default PageAttributes;
+Attributes.displayName = "Attributes";
+export default Attributes;

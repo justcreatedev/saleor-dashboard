@@ -279,6 +279,7 @@ export interface SimpleProductUpdate_productVariantUpdate_productVariant_attribu
   id: string;
   name: string | null;
   slug: string | null;
+  inputType: AttributeInputTypeEnum | null;
   valueRequired: boolean;
   values: (SimpleProductUpdate_productVariantUpdate_productVariant_attributes_attribute_values | null)[] | null;
 }
@@ -430,6 +431,7 @@ export interface SimpleProductUpdate_productVariantStocksCreate_productVariant_a
   id: string;
   name: string | null;
   slug: string | null;
+  inputType: AttributeInputTypeEnum | null;
   valueRequired: boolean;
   values: (SimpleProductUpdate_productVariantStocksCreate_productVariant_attributes_attribute_values | null)[] | null;
 }
@@ -580,6 +582,7 @@ export interface SimpleProductUpdate_productVariantStocksDelete_productVariant_a
   id: string;
   name: string | null;
   slug: string | null;
+  inputType: AttributeInputTypeEnum | null;
   valueRequired: boolean;
   values: (SimpleProductUpdate_productVariantStocksDelete_productVariant_attributes_attribute_values | null)[] | null;
 }
@@ -731,6 +734,7 @@ export interface SimpleProductUpdate_productVariantStocksUpdate_productVariant_a
   id: string;
   name: string | null;
   slug: string | null;
+  inputType: AttributeInputTypeEnum | null;
   valueRequired: boolean;
   values: (SimpleProductUpdate_productVariantStocksUpdate_productVariant_attributes_attribute_values | null)[] | null;
 }

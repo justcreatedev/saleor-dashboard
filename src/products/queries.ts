@@ -211,6 +211,7 @@ const productVariantCreateQuery = gql`
           id
           slug
           name
+          inputType
           valueRequired
           values {
             id
